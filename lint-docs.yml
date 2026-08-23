@@ -1,0 +1,24 @@
+name: Lint docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for broken relative links
+        run: |
+          # Minimal check — fails if a linked .md file doesn't exist.
+          # Swap for a proper markdown-link-check action as docs grow.
+          grep -roE '\]\(([a-zA-Z0-9_./-]+\.md)\)' --include=*.md . | \
+          sed -E 's/.*\(([^)]+)\)/\1/' | sort -u | while read -r link; do
+            if [[ "$link" != http* ]] && [ ! -f "$link" ]; then
+              echo "Broken link: $link"
+              exit 1
+            fi
+          done
